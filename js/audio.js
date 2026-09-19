@@ -153,9 +153,29 @@ const Sound = (() => {
     return hebrewVoice;
   }
 
+  /* מנויים שרוצים לדעת מתי רשימת הקולות התעדכנה (היא נטענת אסינכרונית) */
+  const voiceListeners = [];
+  function onVoices(cb) { voiceListeners.push(cb); }
+  function notifyVoices() { voiceListeners.forEach(cb => { try { cb(); } catch (e) { /* ignore */ } }); }
+
   if (synth) {
     pickVoice();
-    synth.addEventListener?.('voiceschanged', pickVoice);
+    synth.addEventListener?.('voiceschanged', () => { pickVoice(); notifyVoices(); });
+    // בחלק מהמכשירים voiceschanged לא נורה — בודקים שוב אחרי רגע
+    setTimeout(() => { if (!hebrewVoice) { pickVoice(); notifyVoices(); } }, 1200);
+  }
+
+  /**
+   * מצב הקריינות במכשיר הזה:
+   *   'none'       — לדפדפן אין בכלל Web Speech (למשל בתוך חלון מוטמע מסוים)
+   *   'no-hebrew'  — יש הקראה, אבל לא נמצא קול עברי מותקן
+   *   'ok'         — יש קול עברי
+   */
+  function speechState() {
+    if (!synth) return 'none';
+    const voices = synth.getVoices() || [];
+    if (!voices.length) return 'no-hebrew';
+    return hebrewVoice ? 'ok' : 'no-hebrew';
   }
 
   let speakQueue = [];
@@ -216,6 +236,8 @@ const Sound = (() => {
     get narrationOn() { return narrationOn; },
     get musicOn() { return musicOn; },
     get speechSupported() { return !!synth; },
+    speechState,
+    onVoices,
 
     /** להפעיל בפעם הראשונה שהמשתמש נוגע במסך (מדיניות דפדפנים) */
     unlock() {

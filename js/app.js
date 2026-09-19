@@ -41,6 +41,7 @@
     sticker: $('#sticker'),
     confetti: $('#confetti'),
     speechHint: $('#speech-hint'),
+    btnTestVoice: $('#btn-test-voice'),
     videoModal: $('#video-modal'),
     videoHolder: $('#video-holder'),
     videoTitle: $('#video-title'),
@@ -387,6 +388,24 @@
     el.btnSound.setAttribute('aria-label', el.btnSound.title);
   }
 
+  /* ---------- הודעה על מצב הקריינות ---------- */
+
+  const SPEECH_HINT = {
+    none: 'בדפדפן הזה אין הקראה קולית. אם פתחתם את החידון בתוך חלון מוטמע (למשל תצוגה מקדימה) — ' +
+          'פתחו אותו בלשונית רגילה בכרום, ספארי או אדג\', ושם הקריינות תעבוד.',
+    'no-hebrew': 'לא נמצא קול עברי מותקן במכשיר. החידון ינסה להקריא בכל זאת. ' +
+          'להתקנה: אנדרואיד → הגדרות → ניהול כללי → טקסט לדיבור → הורדת עברית. ' +
+          'אייפון → הגדרות → נגישות → תוכן מדובר → קולות → עברית.'
+  };
+
+  function updateSpeechHint() {
+    const state = Sound.speechState();
+    const msg = SPEECH_HINT[state];
+    el.speechHint.hidden = !msg;
+    el.speechHint.textContent = msg || '';
+    el.btnTestVoice.hidden = (state === 'none');
+  }
+
   /* ---------- אתחול ---------- */
 
   function init() {
@@ -394,10 +413,8 @@
     syncSoundButtons();
     showScreen('home');
 
-    if (!Sound.speechSupported) {
-      el.speechHint.hidden = false;
-      el.speechHint.textContent = 'טיפ: הדפדפן הזה לא תומך בהקראה קולית. בכרום או בספארי תשמעו גם קריינות בעברית.';
-    }
+    updateSpeechHint();
+    Sound.onVoices(updateSpeechHint);
 
     // הפעלת שמע אחרי המגע הראשון (דרישת הדפדפנים)
     const unlock = () => {
@@ -450,6 +467,14 @@
       Sound.toggleMusic();
       syncSoundButtons();
       Sound.sfx.pop();
+    });
+
+    el.btnTestVoice.addEventListener('click', () => {
+      Sound.unlock();
+      Sound.sfx.pop();
+      if (!Sound.narrationOn) { Sound.toggleNarration(); syncSoundButtons(); }
+      Sound.speak('שלום! אני אקריא לכם את השאלות. בואו נתחיל לשחק.');
+      updateSpeechHint();
     });
 
     el.btnVideo.addEventListener('click', openVideo);
