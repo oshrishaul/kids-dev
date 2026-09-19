@@ -42,6 +42,10 @@
     confetti: $('#confetti'),
     speechHint: $('#speech-hint'),
     btnTestVoice: $('#btn-test-voice'),
+    voicePanel: $('#voice-panel'),
+    voiceSelect: $('#voice-select'),
+    voiceSelectRow: $('#voice-select-row'),
+    rateSelect: $('#rate-select'),
     videoModal: $('#video-modal'),
     videoHolder: $('#video-holder'),
     videoTitle: $('#video-title'),
@@ -403,7 +407,33 @@
     const msg = SPEECH_HINT[state];
     el.speechHint.hidden = !msg;
     el.speechHint.textContent = msg || '';
-    el.btnTestVoice.hidden = (state === 'none');
+    el.voicePanel.hidden = (state === 'none');
+    renderVoiceList();
+  }
+
+  /* רשימת הקולות מתמלאת רק כשהדפדפן סיים לטעון אותם */
+  function renderVoiceList() {
+    const voices = Sound.voices();
+    // שורת בחירת הקול מוצגת רק כשבאמת יש ממה לבחור
+    el.voiceSelectRow.hidden = voices.length < 2;
+    if (!voices.length) return;
+
+    const current = Sound.voiceName;
+    if (el.voiceSelect.dataset.filled === String(voices.length) &&
+        el.voiceSelect.value === current) return;
+
+    el.voiceSelect.innerHTML = voices.map(v => {
+      const tag = v.score >= 60 ? ' ⭐ מומלץ' : v.network ? ' (רשת)' : '';
+      return `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name}${tag}</option>`;
+    }).join('');
+    el.voiceSelect.value = current;
+    el.voiceSelect.dataset.filled = String(voices.length);
+  }
+
+  function sampleVoice() {
+    Sound.unlock();
+    if (!Sound.narrationOn) { Sound.toggleNarration(); syncSoundButtons(); }
+    Sound.speak('שלום! אני אקריא לכם את השאלות. בואו נגלה ביחד איך העולם עובד.');
   }
 
   /* ---------- אתחול ---------- */
@@ -469,12 +499,18 @@
       Sound.sfx.pop();
     });
 
-    el.btnTestVoice.addEventListener('click', () => {
-      Sound.unlock();
-      Sound.sfx.pop();
-      if (!Sound.narrationOn) { Sound.toggleNarration(); syncSoundButtons(); }
-      Sound.speak('שלום! אני אקריא לכם את השאלות. בואו נתחיל לשחק.');
-      updateSpeechHint();
+    el.rateSelect.value = String(Sound.rate);
+
+    el.btnTestVoice.addEventListener('click', sampleVoice);
+
+    el.voiceSelect.addEventListener('change', () => {
+      Sound.setVoice(el.voiceSelect.value);
+      sampleVoice();
+    });
+
+    el.rateSelect.addEventListener('change', () => {
+      Sound.setRate(el.rateSelect.value);
+      sampleVoice();
     });
 
     el.btnVideo.addEventListener('click', openVideo);
