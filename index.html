@@ -71,11 +71,32 @@
       <button id="btn-random" class="big-btn" type="button">
         <span aria-hidden="true">🎲</span> הפתיעו אותי!
       </button>
-      <p class="voice-check">
-        <button id="btn-test-voice" class="link-btn" type="button">
-          <span aria-hidden="true">🔊</span> בדיקת קריינות
-        </button>
-      </p>
+      <details id="voice-panel" class="voice-panel">
+        <summary class="voice-summary"><span aria-hidden="true">🎙️</span> הגדרות קול (להורים)</summary>
+        <div class="voice-body">
+          <label class="voice-row" id="voice-select-row">
+            <span class="voice-label">הקול שמקריא</span>
+            <select id="voice-select" class="voice-input"></select>
+          </label>
+          <label class="voice-row">
+            <span class="voice-label">מהירות הדיבור</span>
+            <select id="rate-select" class="voice-input">
+              <option value="0.75">איטי מאוד</option>
+              <option value="0.85">איטי</option>
+              <option value="0.9">רגיל</option>
+              <option value="1">מהיר</option>
+            </select>
+          </label>
+          <button id="btn-test-voice" class="link-btn" type="button">
+            <span aria-hidden="true">🔊</span> השמיעו לי דוגמה
+          </button>
+          <p class="voice-tip">
+            יש במכשיר כמה קולות עבריים באיכות שונה. אם הקול נשמע מכני — נסו קול אחר ברשימה.
+            קול עם המילה <strong>Premium</strong>, <strong>Enhanced</strong> או <strong>Google</strong>
+            נשמע בדרך כלל אנושי הרבה יותר.
+          </p>
+        </div>
+      </details>
       <p class="hint" id="speech-hint" hidden></p>
     </div>
   </section>
