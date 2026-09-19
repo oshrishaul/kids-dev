@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="חידון מדע אינטראקטיבי בעברית לילדים בני 5-6, עם קריינות, אנימציות וסרטוני הדגמה">
+<meta name="theme-color" content="#5b4ce0">
+<title>מדענים קטנים – חידון מדע לילדים</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">דלגו לתוכן</a>
+
+<div class="bg-decor" aria-hidden="true">
+  <span class="blob blob-1"></span>
+  <span class="blob blob-2"></span>
+  <span class="blob blob-3"></span>
+</div>
+
+<header class="topbar">
+  <div class="topbar-side">
+    <button id="btn-home" class="icon-btn" type="button" title="חזרה לעמוד הראשי" aria-label="חזרה לעמוד הראשי" hidden>
+      <span aria-hidden="true">🏠</span>
+    </button>
+  </div>
+
+  <div id="progress-wrap" class="progress-wrap" hidden>
+    <span id="progress-label" class="progress-label">שאלה 1 מתוך 5</span>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="התקדמות בחידון">
+      <div id="progress-fill" class="progress-fill"></div>
+    </div>
+    <span id="score-chip" class="score-chip"><span aria-hidden="true">⭐</span> <span id="score-value">0</span></span>
+  </div>
+
+  <div class="topbar-side topbar-sound">
+    <button id="btn-narration" class="icon-btn" type="button" aria-pressed="true">
+      <span class="icon-btn-emoji" aria-hidden="true">🗣️</span>
+      <span class="icon-btn-text">קריינות</span>
+    </button>
+    <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true">
+      <span class="icon-btn-emoji" aria-hidden="true">🎵</span>
+      <span class="icon-btn-text">מוזיקה</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ===== מסך פתיחה ===== -->
+  <section id="screen-home" class="screen is-active" aria-labelledby="home-title">
+    <div class="hero">
+      <div class="hero-art" aria-hidden="true">
+        <span class="hero-emoji hero-emoji-1">🔬</span>
+        <span class="hero-emoji hero-emoji-2">🚀</span>
+        <span class="hero-emoji hero-emoji-3">🦋</span>
+        <span class="hero-emoji hero-emoji-4">🌈</span>
+      </div>
+      <h1 id="home-title" class="hero-title">מדענים קטנים</h1>
+      <p class="hero-sub">חידון מדע מצחיק וצבעוני — בחרו נושא ובואו נגלה!</p>
+    </div>
+
+    <h2 class="section-title">מה חוקרים היום?</h2>
+    <div id="topic-grid" class="topic-grid"></div>
+
+    <div class="home-footer">
+      <button id="btn-random" class="big-btn" type="button">
+        <span aria-hidden="true">🎲</span> הפתיעו אותי!
+      </button>
+      <details id="voice-panel" class="voice-panel">
+        <summary class="voice-summary"><span aria-hidden="true">🎙️</span> הגדרות קול (להורים)</summary>
+        <div class="voice-body">
+          <label class="voice-row" id="voice-select-row">
+            <span class="voice-label">הקול שמקריא</span>
+            <select id="voice-select" class="voice-input"></select>
+          </label>
+          <label class="voice-row">
+            <span class="voice-label">מהירות הדיבור</span>
+            <select id="rate-select" class="voice-input">
+              <option value="0.75">איטי מאוד</option>
+              <option value="0.85">איטי</option>
+              <option value="0.9">רגיל</option>
+              <option value="1">מהיר</option>
+            </select>
+          </label>
+          <button id="btn-test-voice" class="link-btn" type="button">
+            <span aria-hidden="true">🔊</span> השמיעו לי דוגמה
+          </button>
+          <p class="voice-tip">
+            יש במכשיר כמה קולות עבריים באיכות שונה. אם הקול נשמע מכני — נסו קול אחר ברשימה.
+            קול עם המילה <strong>Premium</strong>, <strong>Enhanced</strong> או <strong>Google</strong>
+            נשמע בדרך כלל אנושי הרבה יותר.
+          </p>
+        </div>
+      </details>
+      <p class="hint" id="speech-hint" hidden></p>
+    </div>
+  </section>
+
+  <!-- ===== מסך חידון ===== -->
+  <section id="screen-quiz" class="screen" aria-labelledby="question-text">
+    <div class="stage-card">
+      <div id="stage" class="stage" aria-hidden="true"></div>
+      <button id="btn-video" class="video-btn" type="button" hidden>
+        <span aria-hidden="true">🎬</span> סרטון הדגמה
+      </button>
+    </div>
+
+    <div class="question-row">
+      <h2 id="question-text" class="question-text">…</h2>
+      <button id="btn-replay" class="speak-btn speak-btn-big" type="button" aria-label="הקריאו לי את השאלה שוב">
+        <span aria-hidden="true">🔊</span>
+      </button>
+    </div>
+
+    <div id="answers" class="answers"></div>
+
+    <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+
+    <div class="quiz-footer">
+      <button id="btn-next" class="big-btn" type="button" hidden>
+        לשאלה הבאה <span aria-hidden="true">←</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== מסך סיום ===== -->
+  <section id="screen-done" class="screen" aria-labelledby="done-title">
+    <div class="done-card">
+      <div id="done-medal" class="done-medal" aria-hidden="true">🏆</div>
+      <h2 id="done-title" class="done-title">כל הכבוד!</h2>
+      <p id="done-text" class="done-text"></p>
+      <div id="done-stars" class="done-stars" aria-hidden="true"></div>
+      <div id="sticker-box" class="sticker-box">
+        <p class="sticker-title">המדבקה שהרווחת:</p>
+        <div id="sticker" class="sticker">🌟</div>
+      </div>
+      <div class="done-actions">
+        <button id="btn-again" class="big-btn" type="button"><span aria-hidden="true">🔁</span> עוד פעם</button>
+        <button id="btn-topics" class="big-btn big-btn-ghost" type="button"><span aria-hidden="true">🧭</span> נושא אחר</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== חלון סרטון ===== -->
+<div id="video-modal" class="modal" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="video-title">
+    <div class="modal-head">
+      <h3 id="video-title" class="modal-title">סרטון הדגמה</h3>
+      <button id="btn-close-video" class="icon-btn" type="button" aria-label="סגירת הסרטון"><span aria-hidden="true">✖️</span></button>
+    </div>
+    <div id="video-holder" class="video-holder"></div>
+  </div>
+</div>
+
+<div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<script src="js/data.js"></script>
+<script src="js/videos.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
