@@ -294,10 +294,7 @@
 
       const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
       showFeedback('good', praise, q.explain);
-      Sound.speak([praise.replace(/[^֐-׿\s!?.,]/g, '').trim(), q.explain], {
-        gap: 260,
-        onend: () => { /* סיום הקראה */ }
-      });
+      Sound.speak([praise, q.explain], { gap: 260 });
 
       el.btnNext.hidden = false;
       el.btnNext.textContent = (state.index === state.topic.questions.length - 1)
@@ -319,14 +316,14 @@
         right.classList.remove('is-dim');
         right.classList.add('is-correct', 'is-reveal');
         showFeedback('learn', 'התשובה הנכונה היא: ' + q.a[q.correct].text, q.explain);
-        Sound.speak(['התשובה הנכונה היא ' + q.a[q.correct].text, q.explain], { gap: 300 });
+        Sound.speak(['התשובה הנכונה היא', q.a[q.correct].text, q.explain], { gap: 300 });
         el.btnNext.hidden = false;
         el.btnNext.textContent = (state.index === state.topic.questions.length - 1)
           ? 'לסיום 🎉' : 'לשאלה הבאה ←';
       } else {
         const msg = TRY_AGAIN[Math.floor(Math.random() * TRY_AGAIN.length)];
         showFeedback('retry', msg, '');
-        Sound.speak(msg.replace(/[^֐-׿\s!?.,]/g, '').trim());
+        Sound.speak(msg);
       }
     }
   }
@@ -376,10 +373,7 @@
 
     Sound.sfx.tada();
     burstConfetti(60);
-    Sound.speak([
-      el.doneTitle.textContent,
-      `ענית נכון על ${stars} מתוך ${total} שאלות. קיבלת מדבקה!`
-    ], { gap: 300 });
+    Sound.speak([el.doneTitle.textContent, 'כל הכבוד! הרווחת מדבקה!'], { gap: 300 });
   }
 
   /* ---------- קונפטי ---------- */
@@ -471,27 +465,29 @@
     renderVoiceList();
   }
 
-  /* רשימת הקולות מתמלאת רק כשהדפדפן סיים לטעון אותם */
+  /* רשימת הקריינים מתמלאת כשהקולות/המניפסט נטענים */
   function renderVoiceList() {
-    const voices = Sound.voices();
-    // שורת בחירת הקול מוצגת רק כשבאמת יש ממה לבחור
-    el.voiceSelectRow.hidden = voices.length < 2;
-    if (!voices.length) return;
+    const narrators = Sound.narrators();
+    el.voiceSelectRow.hidden = narrators.length < 2;
+    if (!narrators.length) return;
 
-    const current = Sound.voiceName;
-    if (el.voiceSelect.dataset.filled === String(voices.length) &&
-        el.voiceSelect.value === current) return;
+    const current = Sound.narratorId;
+    const sig = narrators.map(n => n.id).join('|');
+    if (el.voiceSelect.dataset.sig === sig && el.voiceSelect.value === current) return;
 
-    el.voiceSelect.innerHTML = voices.map((v, i) => {
+    el.voiceSelect.innerHTML = narrators.map((n, i) => {
       const bits = [];
-      if (v.female) bits.push('👩 נשי');
+      if (n.neural) bits.push('🌸 טבעי');
+      if (n.female) bits.push('👩 נשי');
       if (i === 0) bits.push('⭐ מומלץ');
-      else if (v.network) bits.push('רשת');
+      else if (!n.neural) bits.push('מכשיר');
       const tag = bits.length ? ' — ' + bits.join(' · ') : '';
-      return `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name}${tag}</option>`;
+      const val = n.id.replace(/"/g, '&quot;');
+      const label = n.label.replace(/</g, '&lt;');
+      return `<option value="${val}">${label}${tag}</option>`;
     }).join('');
     el.voiceSelect.value = current;
-    el.voiceSelect.dataset.filled = String(voices.length);
+    el.voiceSelect.dataset.sig = sig;
   }
 
   function sampleVoice() {
@@ -577,7 +573,7 @@
     el.btnTestVoice.addEventListener('click', sampleVoice);
 
     el.voiceSelect.addEventListener('change', () => {
-      Sound.setVoice(el.voiceSelect.value);
+      Sound.setNarrator(el.voiceSelect.value);
       sampleVoice();
     });
 
