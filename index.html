@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="חידון מדע אינטראקטיבי בעברית לילדים בני 5-6, עם קריינות, אנימציות וסרטוני הדגמה">
+<meta name="description" content="חידון לימודי אינטראקטיבי בעברית לילדים — שתי רמות (5-6 ו-8-10), עם קריינות ואנימציות">
+
 <meta name="theme-color" content="#5b4ce0">
 <title>מדענים קטנים – חידון מדע לילדים</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
@@ -51,8 +52,8 @@
 
 <main id="main">
 
-  <!-- ===== מסך פתיחה ===== -->
-  <section id="screen-home" class="screen is-active" aria-labelledby="home-title">
+  <!-- ===== מסך בחירת רמה ===== -->
+  <section id="screen-level" class="screen is-active" aria-labelledby="level-title">
     <div class="hero">
       <div class="hero-art" aria-hidden="true">
         <span class="hero-emoji hero-emoji-1">🔬</span>
@@ -60,11 +61,25 @@
         <span class="hero-emoji hero-emoji-3">🦋</span>
         <span class="hero-emoji hero-emoji-4">🌈</span>
       </div>
-      <h1 id="home-title" class="hero-title">מדענים קטנים</h1>
-      <p class="hero-sub">חידון מדע מצחיק וצבעוני — בחרו נושא ובואו נגלה!</p>
+      <h1 id="level-title" class="hero-title">מדענים קטנים</h1>
+      <p class="hero-sub">בחרו את הרמה המתאימה — ובואו נתחיל!</p>
     </div>
 
-    <h2 class="section-title">מה חוקרים היום?</h2>
+    <h2 class="section-title">איזו רמה?</h2>
+    <div id="level-grid" class="level-grid"></div>
+  </section>
+
+  <!-- ===== מסך פתיחה (נושאים) ===== -->
+  <section id="screen-home" class="screen" aria-labelledby="home-title">
+    <div class="home-head">
+      <button id="btn-levels" class="link-btn" type="button">
+        <span aria-hidden="true">⬅️</span> שינוי רמה
+      </button>
+      <h1 id="home-title" class="home-level-title">מדענים קטנים</h1>
+      <p id="home-level-ages" class="home-level-ages"></p>
+    </div>
+
+    <h2 class="section-title">איזה נושא נלמד?</h2>
     <div id="topic-grid" class="topic-grid"></div>
 
     <div class="home-footer">
