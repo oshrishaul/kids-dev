@@ -482,8 +482,12 @@
     if (el.voiceSelect.dataset.filled === String(voices.length) &&
         el.voiceSelect.value === current) return;
 
-    el.voiceSelect.innerHTML = voices.map(v => {
-      const tag = v.score >= 60 ? ' ⭐ מומלץ' : v.network ? ' (רשת)' : '';
+    el.voiceSelect.innerHTML = voices.map((v, i) => {
+      const bits = [];
+      if (v.female) bits.push('👩 נשי');
+      if (i === 0) bits.push('⭐ מומלץ');
+      else if (v.network) bits.push('רשת');
+      const tag = bits.length ? ' — ' + bits.join(' · ') : '';
       return `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name}${tag}</option>`;
     }).join('');
     el.voiceSelect.value = current;

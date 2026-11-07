@@ -644,7 +644,7 @@ const HARD_TOPICS = [
         explain: 'כלב באנגלית הוא Dog. חתול הוא Cat.'
       },
       {
-        q: 'What is the opposite of "big"?',
+        q: 'מה ההפך באנגלית של big (גדול)?',
         a: [{ text: 'Small' }, { text: 'Tall' }, { text: 'Fast' }, { text: 'Happy' }],
         correct: 0,
         explain: 'ההפך מ-big (גדול) הוא small (קטן).'
@@ -656,10 +656,10 @@ const HARD_TOPICS = [
         explain: 'תפוח הוא Apple. Orange זה תפוז.'
       },
       {
-        q: 'Which word is a color (צבע)?',
+        q: 'איזו מילה באנגלית היא צֶבַע?',
         a: [{ text: 'Blue' }, { text: 'Table' }, { text: 'Run' }, { text: 'Happy' }],
         correct: 0,
-        explain: 'Blue פירושו כחול — זהו צבע.'
+        explain: 'Blue פירושו כחול — זהו צבע. Table זה שולחן.'
       },
       {
         q: 'איך אומרים "סֵפֶר" באנגלית?',
@@ -668,16 +668,16 @@ const HARD_TOPICS = [
         explain: 'ספר הוא Book. Pen זה עט.'
       },
       {
-        q: 'What is "two plus three"?',
+        q: 'מה התוצאה באנגלית של two plus three (2 + 3)?',
         a: [{ text: 'Five' }, { text: 'Four' }, { text: 'Six' }, { text: 'Seven' }],
         correct: 0,
-        explain: 'Two plus three = five (2 + 3 = 5).'
+        explain: 'two plus three = five, כלומר 2 + 3 = 5 (חמש).'
       },
       {
-        q: 'Which one is a day of the week?',
+        q: 'איזו מילה באנגלית היא יום בשבוע?',
         a: [{ text: 'Monday' }, { text: 'January' }, { text: 'Summer' }, { text: 'Morning' }],
         correct: 0,
-        explain: 'Monday (יום שני) הוא יום בשבוע. January הוא חודש.'
+        explain: 'Monday (יום שני) הוא יום בשבוע. January הוא חודש (ינואר).'
       },
       {
         q: 'איך אומרים "תּוֹדָה" באנגלית?',
@@ -686,10 +686,10 @@ const HARD_TOPICS = [
         explain: 'תודה היא Thank you. Please זה בבקשה.'
       },
       {
-        q: 'What animal says "moo"?',
+        q: 'איזו חיה אומרת באנגלית "מוּ" (moo)?',
         a: [{ text: 'Cow 🐄' }, { text: 'Dog 🐕' }, { text: 'Cat 🐈' }, { text: 'Duck 🦆' }],
         correct: 0,
-        explain: 'פרה (Cow) עושה "moo". כלב עושה "woof".'
+        explain: 'פָּרָה (Cow) עושה "moo". כלב (Dog) עושה "woof".'
       },
       {
         q: 'איך אומרים "שֶׁמֶשׁ" באנגלית?',
