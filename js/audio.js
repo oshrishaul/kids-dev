@@ -160,20 +160,27 @@ const Sound = (() => {
    * הסדר כאן חשוב: ברוב המכשירים מותקנים כמה קולות עבריים
    * באיכות שונה מאוד, והדפדפן בוחר בעצמו — לא תמיד את הטוב.
    */
+  // קולות עבריים מוכרים לפי מין (ה-API לא חושף מין, אז לפי שם)
+  const FEMALE_HE = /carmit|hila|female|woman|נקבה|girl|she\b/i;   // Carmit=אפל, Hila=מיקרוסופט
+  const MALE_HE = /asaf|male\b|\bman\b|גבר|boy/i;                   // Asaf=מיקרוסופט (גברי)
+
   function voiceScore(v) {
     const name = (v.name || '').toLowerCase();
     let s = 0;
-    // קולות נוירונים/משודרגים — הכי אנושיים
+    // המשתמש ביקש קול נשי — העדפה חזקה לנשי, ועונש לגברי מוכר
+    if (FEMALE_HE.test(name)) s += 80;
+    if (MALE_HE.test(name)) s -= 80;
+    // קולות נוירונים/משודרגים — הכי אנושיים וההגייה הכי טובה
     if (/premium|enhanced|neural|natural|siri/.test(name)) s += 60;
-    // קולות רשת של גוגל טובים בדרך כלל מהמקומיים
+    // קולות רשת (לא מקומיים) בדרך כלל אנושיים יותר מהמקומיים
     if (v.localService === false) s += 30;
     if (/google/.test(name)) s += 20;
-    // קול נשי נתפס כנעים יותר לילדים; carmit הוא הקול העברי של אפל
-    if (/carmit|female|נקבה|woman/.test(name)) s += 10;
-    // קולות "compact"/"eloquence" הם הישנים והמכניים ביותר
-    if (/compact|eloquence|espeak/.test(name)) s -= 50;
+    // קולות "compact"/"eloquence"/"espeak" — הישנים והמכניים ביותר
+    if (/compact|eloquence|espeak/.test(name)) s -= 60;
     return s;
   }
+
+  function voiceIsFemale(v) { return FEMALE_HE.test(v.name || ''); }
 
   /** כל הקולות העבריים במכשיר, מהטוב לפחות טוב */
   function listVoices() {
@@ -310,6 +317,7 @@ const Sound = (() => {
         name: v.name,
         lang: v.lang,
         network: v.localService === false,
+        female: voiceIsFemale(v),
         score: voiceScore(v)
       }));
     },
