@@ -237,6 +237,85 @@ main {
   color: var(--ink);
 }
 
+/* ----- מסך בחירת רמה ----- */
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+.level-card {
+  --main: #6d5ae0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 20px 22px;
+  min-height: 220px;
+  border: 4px solid var(--main);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, #fff, var(--soft));
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: center;
+  transition: transform .18s cubic-bezier(.22, 1.4, .5, 1), box-shadow .18s ease;
+}
+.level-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.level-card:active { transform: scale(.97); }
+.level-emoji {
+  font-size: 4rem;
+  line-height: 1.05;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .14));
+  transition: transform .3s ease;
+}
+.level-card:hover .level-emoji { transform: scale(1.14) rotate(-5deg); }
+.level-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--deep);
+}
+.level-ages {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--main);
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 14px;
+}
+.level-blurb { font-size: .98rem; color: var(--ink-soft); line-height: 1.4; }
+.level-meta { margin-top: auto; font-size: .82rem; color: var(--main); }
+
+/* ----- כותרת מסך הנושאים (עם הרמה הנבחרת) ----- */
+
+.home-head {
+  position: relative;
+  text-align: center;
+  padding: 16px 0 4px;
+}
+.home-level-title {
+  font-family: "Fredoka", "Varela Round", sans-serif;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  color: var(--main);
+  text-shadow: 0 3px 0 #fff, 0 6px 16px rgba(0, 0, 0, .12);
+}
+.home-level-ages {
+  margin-top: 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.home-head .link-btn {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 10px;
+}
+@media (max-width: 430px) {
+  .home-head .link-btn { position: static; margin-bottom: 10px; }
+}
+
 .topic-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

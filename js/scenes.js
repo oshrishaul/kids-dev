@@ -727,6 +727,103 @@ const SCENES = {
       <text x="210" y="156" text-anchor="middle" font-size="16" fill="#c9a000">צהוב</text>
       <text x="150" y="182" text-anchor="middle" font-size="19" fill="#31a95a">= ירוק!</text>
     </svg>`;
+  },
+
+  /* ===== באנרים לרמה המתקדמת (גילאי 8-10) ===== */
+
+  langBanner() {
+    return `<svg viewBox="0 0 300 200" role="img" aria-hidden="true">
+      ${sky('hl1', '#e7efff', '#c4d8ff')}
+      <g class="a-bob" style="--d:4s"><g>
+        <rect x="104" y="70" width="92" height="76" rx="8" fill="#fff" stroke="#3b6fd4" stroke-width="4"/>
+        <path d="M150 70 v76" stroke="#3b6fd4" stroke-width="4"/>
+        <path d="M114 86 h26 M114 98 h26 M114 110 h20" stroke="#9fb8e8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M160 86 h26 M160 98 h26 M160 110 h20" stroke="#9fb8e8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M104 146 q46-14 92 0" fill="none" stroke="#3b6fd4" stroke-width="4"/>
+      </g></g>
+      <g class="a-float"><text x="56" y="56" font-size="34" fill="#2b4fa0" font-weight="700">א</text></g>
+      <g class="a-float" style="animation-delay:-2s"><text x="150" y="44" font-size="30" fill="#4f78d8" font-weight="700">ב</text></g>
+      <g class="a-float" style="animation-delay:-3.4s"><text x="244" y="58" font-size="34" fill="#2b4fa0" font-weight="700">ג</text></g>
+      <g class="a-twinkle" style="--delay:.4s"><text x="40" y="150" font-size="22">📖</text></g>
+      <g class="a-twinkle" style="--delay:1.2s"><text x="262" y="150" font-size="22">✏️</text></g>
+    </svg>`;
+  },
+
+  mathBanner() {
+    return `<svg viewBox="0 0 300 200" role="img" aria-hidden="true">
+      ${sky('hl2', '#e2fbf8', '#b4efe6')}
+      <g class="a-float"><text x="54" y="62" font-size="36" fill="#0b8f85" font-weight="700">7</text></g>
+      <g class="a-float" style="animation-delay:-1.4s"><text x="246" y="58" font-size="36" fill="#0b8f85" font-weight="700">9</text></g>
+      <g class="a-float" style="animation-delay:-2.6s"><text x="150" y="42" font-size="30" fill="#13a89c" font-weight="700">42</text></g>
+      <g class="a-spin-slow"><g>
+        <rect x="128" y="86" width="44" height="44" rx="8" fill="#0fb3a6"/>
+        <text x="150" y="116" font-size="30" fill="#fff" font-weight="700">×</text>
+      </g></g>
+      <g class="a-bob" style="--d:3s"><text x="62" y="150" font-size="30" fill="#0b8f85" font-weight="700">+</text></g>
+      <g class="a-bob" style="--d:3.6s"><text x="238" y="150" font-size="30" fill="#0b8f85" font-weight="700">÷</text></g>
+      <g class="a-twinkle" style="--delay:.5s"><text x="106" y="56" font-size="22" fill="#0b8f85">△</text></g>
+      <g class="a-twinkle" style="--delay:1.3s"><text x="196" y="56" font-size="22" fill="#0b8f85">◯</text></g>
+      <text x="150" y="170" text-anchor="middle" font-size="16" fill="#07605a">מתמטיקה</text>
+    </svg>`;
+  },
+
+  sciBanner() {
+    // כל מסלול: טבעת סטטית + אלקטרון שמקיף. העיגול הנסתר הממורכז (150,96)
+    // מכריח את מרכז הסיבוב ל-fill-box הנכון (ראו solarSystem).
+    const ring = (r, dur, delay, color) => `
+      <circle cx="150" cy="96" r="${r}" fill="none" stroke="#c4aef2" stroke-width="2"/>
+      <g class="a-orbit" style="--d:${dur}s; --delay:-${delay}s">
+        <circle cx="150" cy="96" r="${r + 5}" fill="none"/>
+        <g transform="translate(${150 + r} 96)"><circle r="5" fill="${color}"/></g>
+      </g>`;
+    return `<svg viewBox="0 0 300 200" role="img" aria-hidden="true">
+      ${sky('hl3', '#f0e9ff', '#d6c4f7')}
+      ${ring(34, 6, 0, '#8a5cf0')}
+      ${ring(52, 9, 2, '#b388ff')}
+      ${ring(70, 13, 4, '#6a3fd0')}
+      <circle class="a-pulse" cx="150" cy="96" r="15" fill="#8a5cf0" opacity=".22"/>
+      <circle cx="150" cy="96" r="11" fill="#8a5cf0"/>
+      <g class="a-bob" style="--d:3.4s"><g>
+        <path d="M40 150 v-26 l-7-11 h26 l-7 11 v26z" fill="none" stroke="#6a3fd0" stroke-width="3"/>
+        <path d="M33 136 h20" stroke="#6a3fd0" stroke-width="3"/>
+        <path d="M33 136 v14 h20 v-14z" fill="#b388ff" opacity=".8"/>
+      </g></g>
+      <g class="a-twinkle" style="--delay:.6s"><text x="262" y="150" font-size="24">🧪</text></g>
+    </svg>`;
+  },
+
+  engBanner() {
+    return `<svg viewBox="0 0 300 200" role="img" aria-hidden="true">
+      ${sky('hl4', '#ffe9ec', '#ffc9d2')}
+      <g class="a-spin-med"><g>
+        <circle cx="150" cy="96" r="40" fill="#5ec2f0"/>
+        <path d="M118 84 q20-10 40 0 t30 4 l-4 18 q-24 8-40-2 t-28-6z" fill="#5ed17a"/>
+        <path d="M126 118 q16-8 30 0 l-6 12 q-14 4-24-2z" fill="#5ed17a"/>
+        <circle cx="150" cy="96" r="40" fill="none" stroke="#2f8fd0" stroke-width="3"/>
+      </g></g>
+      <g class="a-float"><text x="52" y="56" font-size="34" fill="#c23a53" font-weight="700">A</text></g>
+      <g class="a-float" style="animation-delay:-1.8s"><text x="150" y="42" font-size="30" fill="#e0556c" font-weight="700">B</text></g>
+      <g class="a-float" style="animation-delay:-3s"><text x="248" y="56" font-size="34" fill="#c23a53" font-weight="700">C</text></g>
+      <g class="a-twinkle" style="--delay:.7s"><text x="46" y="154" font-size="22">🔤</text></g>
+      <g class="a-twinkle" style="--delay:1.4s"><text x="256" y="154" font-size="22">🌍</text></g>
+    </svg>`;
+  },
+
+  bibleBanner() {
+    return `<svg viewBox="0 0 300 200" role="img" aria-hidden="true">
+      ${sky('hl5', '#fdf1dd', '#f2d9a8')}
+      <g class="a-bob" style="--d:4s"><g>
+        <path d="M118 62 h64 q8 0 8 8 v58 q0 8-8 8 h-64 q-8 0-8-8 v-58 q0-8 8-8z" fill="#fff8e8" stroke="#b07a1e" stroke-width="4"/>
+        <path d="M150 62 v74" stroke="#b07a1e" stroke-width="3"/>
+        <text x="134" y="92" font-size="13" fill="#8a5a12">א ב ג</text>
+        <text x="166" y="92" font-size="13" fill="#8a5a12">ד ה ו</text>
+        <text x="134" y="112" font-size="13" fill="#8a5a12">ז ח ט</text>
+        <text x="166" y="112" font-size="13" fill="#8a5a12">י כ ל</text>
+      </g></g>
+      <g class="a-twinkle" style="--delay:.5s"><text x="44" y="60" font-size="26">📜</text></g>
+      <g class="a-twinkle" style="--delay:1.3s"><text x="256" y="150" font-size="24">🕯️</text></g>
+      <text x="150" y="178" text-anchor="middle" font-size="16" fill="#6b4410">תנ"ך</text>
+    </svg>`;
   }
 };
 

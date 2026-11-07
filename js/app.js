@@ -11,10 +11,15 @@
   const el = {
     body: document.body,
     screens: {
+      level: $('#screen-level'),
       home: $('#screen-home'),
       quiz: $('#screen-quiz'),
       done: $('#screen-done')
     },
+    levelGrid: $('#level-grid'),
+    btnLevels: $('#btn-levels'),
+    homeLevelTitle: $('#home-title'),
+    homeLevelAges: $('#home-level-ages'),
     topicGrid: $('#topic-grid'),
     stage: $('#stage'),
     question: $('#question-text'),
@@ -53,11 +58,13 @@
   };
 
   const state = {
+    level: null,
     topic: null,
     index: 0,
     stars: 0,
     attempts: 0,
     locked: false,
+    order: [],        // סדר התצוגה המעורבב של התשובות לשאלה הנוכחית
     restoreMusic: null
   };
 
@@ -85,16 +92,51 @@
     Object.entries(el.screens).forEach(([key, node]) => {
       node.classList.toggle('is-active', key === name);
     });
-    el.btnHome.hidden = (name === 'home');
+    // כפתור הבית מחזיר לרשימת הנושאים — לא רלוונטי במסך הרמה או במסך הנושאים עצמו
+    el.btnHome.hidden = (name === 'home' || name === 'level');
     el.progressWrap.hidden = (name !== 'quiz');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ---------- מסך הבית ---------- */
+  /* ---------- מסך בחירת רמה ---------- */
+
+  function renderLevels() {
+    el.levelGrid.innerHTML = LEVELS.map(lv => `
+      <button class="level-card" type="button" data-level="${lv.id}"
+        style="--main:${lv.theme.main}; --soft:${lv.theme.soft}; --deep:${lv.theme.deep}; --accent:${lv.theme.accent}">
+        <span class="level-emoji" aria-hidden="true">${lv.emoji}</span>
+        <span class="level-title">${lv.title}</span>
+        <span class="level-ages">${lv.ages}</span>
+        <span class="level-blurb">${lv.blurb}</span>
+        <span class="level-meta">${lv.topics.length} נושאים</span>
+      </button>`).join('');
+
+    el.levelGrid.querySelectorAll('.level-card').forEach(card => {
+      card.addEventListener('click', () => {
+        Sound.sfx.pop();
+        selectLevel(card.dataset.level);
+      });
+    });
+  }
+
+  function selectLevel(levelId) {
+    const level = LEVELS.find(l => l.id === levelId);
+    if (!level) return;
+    state.level = level;
+    applyTheme(level.theme);
+    renderHome();
+    showScreen('home');
+  }
+
+  /* ---------- מסך הנושאים ---------- */
 
   function renderHome() {
+    const level = state.level || LEVELS[0];
+    el.homeLevelTitle.textContent = level.title;
+    el.homeLevelAges.textContent = level.ages;
+
     const best = loadBest();
-    el.topicGrid.innerHTML = TOPICS.map(t => {
+    el.topicGrid.innerHTML = level.topics.map(t => {
       const stars = best[t.id] || 0;
       const total = t.questions.length;
       const badge = stars
@@ -121,22 +163,23 @@
   /* ---------- התחלת נושא ---------- */
 
   function startTopic(topicId) {
-    const topic = TOPICS.find(t => t.id === topicId);
+    const topics = (state.level || LEVELS[0]).topics;
+    const topic = topics.find(t => t.id === topicId);
     if (!topic) return;
     state.topic = topic;
     state.index = 0;
     state.stars = 0;
-    applyTheme(topic);
+    applyTheme(topic.theme);
     showScreen('quiz');
     renderQuestion();
   }
 
-  function applyTheme(topic) {
+  function applyTheme(theme) {
     const root = document.documentElement;
-    root.style.setProperty('--main', topic.theme.main);
-    root.style.setProperty('--soft', topic.theme.soft);
-    root.style.setProperty('--deep', topic.theme.deep);
-    root.style.setProperty('--accent', topic.theme.accent);
+    root.style.setProperty('--main', theme.main);
+    root.style.setProperty('--soft', theme.soft);
+    root.style.setProperty('--deep', theme.deep);
+    root.style.setProperty('--accent', theme.accent);
   }
 
   /* ---------- שאלה ---------- */
@@ -145,13 +188,24 @@
     return state.topic.questions[state.index];
   }
 
+  /* ערבוב Fisher–Yates — כדי שהתשובה הנכונה לא תהיה תמיד הראשונה */
+  function shuffled(n) {
+    const arr = Array.from({ length: n }, (_, i) => i);
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   function renderQuestion() {
     const q = currentQuestion();
     state.attempts = 0;
     state.locked = false;
+    state.order = shuffled(q.a.length);
 
-    // אנימציה
-    el.stage.innerHTML = renderScene(q.scene);
+    // אנימציה — scene של השאלה, ואם אין, ה-scene של הנושא
+    el.stage.innerHTML = renderScene(q.scene || state.topic.scene);
     el.stage.classList.remove('stage-pop');
     void el.stage.offsetWidth;
     el.stage.classList.add('stage-pop');
@@ -159,17 +213,22 @@
     // שאלה
     el.question.textContent = q.q;
 
-    // תשובות
-    el.answers.innerHTML = q.a.map((ans, i) => `
-      <div class="answer" data-index="${i}">
+    // תשובות — מוצגות בסדר מעורבב, אך data-index נשאר האינדקס המקורי
+    el.answers.innerHTML = state.order.map(i => {
+      const ans = q.a[i];
+      const emoji = ans.emoji
+        ? `<span class="answer-emoji" aria-hidden="true">${ans.emoji}</span>` : '';
+      return `
+      <div class="answer${ans.emoji ? '' : ' answer-noemoji'}">
         <button class="answer-btn" type="button" data-index="${i}">
-          <span class="answer-emoji" aria-hidden="true">${ans.emoji}</span>
+          ${emoji}
           <span class="answer-text">${ans.text}</span>
           <span class="answer-mark" aria-hidden="true"></span>
         </button>
         <button class="speak-btn answer-speak" type="button" data-speak="${i}"
           aria-label="הקריאו לי: ${ans.text}"><span aria-hidden="true">🔊</span></button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     el.answers.querySelectorAll('.answer-btn').forEach(btn => {
       btn.addEventListener('click', () => onAnswer(Number(btn.dataset.index)));
@@ -200,7 +259,8 @@
     const q = currentQuestion();
     const parts = [q.q];
     if (includeAnswers) {
-      q.a.forEach(a => parts.push(a.text));
+      // מקריאים לפי סדר התצוגה שעל המסך
+      state.order.forEach(i => parts.push(q.a[i].text));
     }
     Sound.speak(parts, { gap: 350 });
   }
@@ -439,9 +499,10 @@
   /* ---------- אתחול ---------- */
 
   function init() {
+    renderLevels();
     renderHome();
     syncSoundButtons();
-    showScreen('home');
+    showScreen('level');
 
     updateSpeechHint();
     Sound.onVoices(updateSpeechHint);
@@ -469,9 +530,17 @@
       showScreen('home');
     });
 
+    el.btnLevels.addEventListener('click', () => {
+      Sound.sfx.pop();
+      Sound.stopSpeaking();
+      applyTheme(LEVELS[0].theme);
+      showScreen('level');
+    });
+
     el.btnRandom.addEventListener('click', () => {
       Sound.sfx.pop();
-      const t = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+      const topics = (state.level || LEVELS[0]).topics;
+      const t = topics[Math.floor(Math.random() * topics.length)];
       startTopic(t.id);
     });
 
@@ -520,10 +589,12 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !el.videoModal.hidden) { closeVideo(); return; }
       if (!el.screens.quiz.classList.contains('is-active')) return;
-      if (['1', '2', '3'].includes(e.key)) {
-        const i = Number(e.key) - 1;
-        const btn = el.answers.querySelector(`.answer-btn[data-index="${i}"]`);
-        if (btn && !btn.disabled) { btn.focus(); onAnswer(i); }
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        // המקשים בוחרים לפי מיקום התשובה על המסך
+        const pos = Number(e.key) - 1;
+        const btns = el.answers.querySelectorAll('.answer-btn');
+        const btn = btns[pos];
+        if (btn && !btn.disabled) { btn.focus(); onAnswer(Number(btn.dataset.index)); }
       }
       if (e.key === 'Enter' && !el.btnNext.hidden && document.activeElement === document.body) {
         nextQuestion();
