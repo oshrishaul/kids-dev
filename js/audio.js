@@ -204,22 +204,56 @@ const Sound = (() => {
     return hebrewVoice;
   }
 
-  /**
-   * ניקוי טקסט לפני הקראה. סימנים כמו … ו-־ נקראים מוזר
-   * במנועי TTS ומוסיפים לתחושה המכנית.
-   */
-  function normalizeForSpeech(text) {
-    return String(text)
-      .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}]/gu, ' ') // אמוג'י וחצים
-      .replace(/…/g, ',')      // שלוש נקודות -> הפסקה קצרה
-      .replace(/־/g, ' ')      // מקף עברי
-      .replace(/\s*—\s*/g, ', ') // מקף ארוך -> הפסקה
-      .replace(/\s{2,}/g, ' ')
-      .replace(/\s+([,.!?])/g, '$1')
-      .replace(/([.!?])\s*,/g, '$1')   // "בום!, בום" -> "בום! בום"
-      .replace(/,\s*,/g, ',')
-      .trim();
+  /* הניקוי משותף עם סקריפט היצירה (js/narration.js) כדי שהמפתחות יתאימו */
+  const normalizeForSpeech = (window.Narration ? Narration.normalizeForSpeech
+    : (t) => String(t).trim());
+  const keyOf = (norm) => (window.Narration ? Narration.narrationHash(norm)
+    : norm);
+
+  /* ---------- קריינים נוירוניים (קובצי שמע שנוצרו מראש) ---------- */
+
+  const LS_NARRATOR = 'kids-science.narrator'; // '' = אוטומטי, 'g:<id>' נוירוני, 'd:<name>' מכשיר
+  const VOICES_BASE = 'assets/voices';
+  let neuralVoices = [];            // [{id, name, female}]
+  let clipSet = new Set();          // מפתחות שיש להם קובץ שמע
+  let narratorPref = loadStr(LS_NARRATOR);
+  let currentAudio = null;
+
+  /* טעינת המניפסט של הקולות הנוירוניים (אם נוצרו) */
+  function loadManifest() {
+    try {
+      fetch(VOICES_BASE + '/manifest.json', { cache: 'no-cache' })
+        .then(r => (r.ok ? r.json() : null))
+        .then(m => {
+          if (!m || !Array.isArray(m.voices) || !m.voices.length) return;
+          neuralVoices = m.voices;
+          clipSet = new Set(Object.keys(m.clips || {}));
+          notifyVoices();
+        })
+        .catch(() => { /* אין קולות נוירוניים — ממשיכים עם Web Speech */ });
+    } catch (e) { /* ignore */ }
   }
+
+  function neuralVoiceById(id) { return neuralVoices.find(v => v.id === id) || null; }
+
+  /* הקריין הפעיל כרגע: נוירוני או קול-מכשיר */
+  function currentNarrator() {
+    if (narratorPref.startsWith('g:')) {
+      const v = neuralVoiceById(narratorPref.slice(2));
+      if (v) return { type: 'neural', voice: v };
+    }
+    if (narratorPref.startsWith('d:')) {
+      return { type: 'device', name: narratorPref.slice(2) };
+    }
+    // אוטומטי: אם יש קולות נוירוניים — ברירת המחדל היא הראשון (הכי טבעי)
+    if (neuralVoices.length) return { type: 'neural', voice: neuralVoices[0] };
+    return { type: 'device', name: '' };
+  }
+
+  function clipUrl(voiceId, norm) {
+    return `${VOICES_BASE}/${voiceId}/${keyOf(norm)}.mp3`;
+  }
+  function hasClip(norm) { return clipSet.has(keyOf(norm)); }
 
   /* מנויים שרוצים לדעת מתי רשימת הקולות התעדכנה (היא נטענת אסינכרונית) */
   const voiceListeners = [];
@@ -233,6 +267,8 @@ const Sound = (() => {
     setTimeout(() => { if (!hebrewVoice) { pickVoice(); notifyVoices(); } }, 1200);
   }
 
+  loadManifest(); // טוען קריינים נוירוניים אם נוצרו מראש
+
   /**
    * מצב הקריינות במכשיר הזה:
    *   'none'       — לדפדפן אין בכלל Web Speech (למשל בתוך חלון מוטמע מסוים)
@@ -240,6 +276,7 @@ const Sound = (() => {
    *   'ok'         — יש קול עברי
    */
   function speechState() {
+    if (neuralVoices.length) return 'ok';   // יש קריינים נוירוניים מובנים
     if (!synth) return 'none';
     const voices = synth.getVoices() || [];
     if (!voices.length) return 'no-hebrew';
@@ -249,28 +286,62 @@ const Sound = (() => {
   let speakQueue = [];
   let speaking = false;
 
-  function speakNext() {
-    if (!synth || !speakQueue.length) { speaking = false; return; }
-    speaking = true;
-    const item = speakQueue.shift();
+  function deviceVoiceFor(name) {
+    if (name) {
+      const match = listVoices().find(v => v.name === name);
+      if (match) return match;
+    }
+    if (!voicesReady) pickVoice();
+    return hebrewVoice;
+  }
+
+  function afterItem(item) {
+    item.onend && item.onend();
+    setTimeout(speakNext, item.gap ?? 120);
+  }
+
+  /* הקראה דרך Web Speech (קול המכשיר) */
+  function webSpeakItem(item, deviceName) {
+    if (!synth) { afterItem(item); return; }
     const u = new SpeechSynthesisUtterance(item.text);
     u.lang = 'he-IL';
-    if (!voicesReady) pickVoice();
-    // הפניה לקול יכולה להתיישן כשרשימת הקולות מתחלפת — לא נותנים לזה
-    // להפיל את כל הקריינות; בלי voice הדפדפן יבחר לפי lang
-    try { if (hebrewVoice) u.voice = hebrewVoice; } catch (e) { hebrewVoice = null; }
-    u.rate = item.rate ?? speechRate; // קצב נינוח לילדים, ניתן לכוונון
-    // pitch גבוה על מנוע פשוט נשמע מכני ומתכתי — 1.0 הכי טבעי
+    const v = deviceVoiceFor(deviceName);
+    try { if (v) u.voice = v; } catch (e) { hebrewVoice = null; }
+    u.rate = item.rate ?? speechRate;
     u.pitch = item.pitch ?? 1.0;
     u.volume = 1;
-    u.onend = () => { item.onend?.(); setTimeout(speakNext, item.gap ?? 120); };
-    u.onerror = () => { item.onend?.(); setTimeout(speakNext, 80); };
+    u.onend = () => afterItem(item);
+    u.onerror = () => afterItem(item);
     try { synth.speak(u); } catch (e) { speaking = false; }
+  }
+
+  /* השמעת קליפ נוירוני שנוצר מראש */
+  function playClipItem(item, voiceId) {
+    const a = new Audio(clipUrl(voiceId, item.text));
+    currentAudio = a;
+    // סרגל המהירות (0.6–1.2, בסיס 0.9) ממופה ל-playbackRate סביב 1.0
+    a.playbackRate = Math.max(0.6, Math.min(1.6, speechRate / 0.9));
+    a.onended = () => { if (currentAudio === a) currentAudio = null; afterItem(item); };
+    a.onerror = () => { if (currentAudio === a) currentAudio = null; webSpeakItem(item, ''); };
+    a.play().catch(() => { if (currentAudio === a) currentAudio = null; webSpeakItem(item, ''); });
+  }
+
+  function speakNext() {
+    if (!speakQueue.length) { speaking = false; return; }
+    speaking = true;
+    const item = speakQueue.shift();
+    const nar = currentNarrator();
+    if (nar.type === 'neural' && hasClip(item.text)) {
+      playClipItem(item, nar.voice.id);
+    } else {
+      webSpeakItem(item, nar.type === 'device' ? nar.name : '');
+    }
   }
 
   /** מקריא טקסט (או מערך טקסטים ברצף). מתעלם אם הקריינות מושתקת. */
   function speak(text, opts = {}) {
-    if (!synth || !narrationOn) return;
+    if (!narrationOn) return;
+    if (!synth && !neuralVoices.length) return;
     const list = Array.isArray(text) ? text : [text];
     stopSpeaking();
     speakQueue = list
@@ -290,6 +361,7 @@ const Sound = (() => {
   function stopSpeaking() {
     speakQueue = [];
     speaking = false;
+    if (currentAudio) { try { currentAudio.pause(); } catch (e) { /* ignore */ } currentAudio = null; }
     try { synth && synth.cancel(); } catch (e) { /* ignore */ }
   }
 
@@ -328,6 +400,32 @@ const Sound = (() => {
       pickVoice();
       return hebrewVoice ? hebrewVoice.name : '';
     },
+
+    /* ----- קריינים לבחירה: נוירוניים (טבעיים) + קולות המכשיר ----- */
+    narrators() {
+      const list = neuralVoices.map(v => ({
+        id: 'g:' + v.id, label: v.name, neural: true, female: v.female !== false
+      }));
+      listVoices().forEach(v => list.push({
+        id: 'd:' + v.name, label: v.name, neural: false, female: voiceIsFemale(v)
+      }));
+      return list;
+    },
+    get narratorId() {
+      const nar = currentNarrator();
+      return nar.type === 'neural' ? 'g:' + nar.voice.id : 'd:' + (nar.name || (hebrewVoice ? hebrewVoice.name : ''));
+    },
+    setNarrator(id) {
+      narratorPref = id || '';
+      saveStr(LS_NARRATOR, narratorPref);
+      if (narratorPref.startsWith('d:')) {
+        preferredVoiceName = narratorPref.slice(2);
+        saveStr(LS_VOICE, preferredVoiceName);
+        pickVoice();
+      }
+      return this.narratorId;
+    },
+    get hasNeural() { return neuralVoices.length > 0; },
 
     get rate() { return speechRate; },
     setRate(r) {
